@@ -43,3 +43,11 @@ class ChatMessage:
             dst=data['dst'],
             msg=data['msg'],
         )
+
+    def to_json(self):
+        return {
+            'src': self.src,
+            'dst': self.dst,
+            'msg': self.msg,
+        }
+
