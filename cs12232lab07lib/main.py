@@ -67,8 +67,8 @@ class Session:
     def __init__(self, username: str, endpoint: str, websocket: WebSocketClientProtocol):
         self.username = username
         self.endpoint = endpoint
+        self.public_chats = None
         self._websocket = websocket
-        self._public_chats = None
 
     async def fetch_chat_messages(self):
         data = json.loads(await self._websocket.recv())
@@ -76,7 +76,7 @@ class Session:
         if not self._is_authentication_message(data):
             raise self._make_error(data)
 
-        self._public_chats = data[JSON_PUBLIC_CHATS_KEY]
+        self.public_chats = data[JSON_PUBLIC_CHATS_KEY]
 
     def make_task(self, callback: Callable[[ChatMessage], None]):
         async def inner():
