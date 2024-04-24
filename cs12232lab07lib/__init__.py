@@ -1,1 +1,1 @@
-from main import authenticate, AuthenticatedMessageData, ChatMessage, ChatMessageData, Session
+from .main import authenticate, AuthenticatedMessageData, ChatMessage, ChatMessageData, Session
