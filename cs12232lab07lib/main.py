@@ -1,36 +1,9 @@
-from dataclasses import dataclass
-from enum import StrEnum
 from typing import Any, TypeGuard, Callable
 import json
-from typing import TypedDict
 
 from websockets.client import connect, WebSocketClientProtocol
 
-
-class ChatMessageData(TypedDict):
-    src: str
-    dst: str | None
-    msg: str
-
-
-class AuthenticatedMessageData(TypedDict):
-    msg: str
-    public_chats: list[ChatMessageData]
-
-
-@dataclass
-class ChatMessage:
-    src: str
-    dst: str | None
-    msg: str
-
-    @classmethod
-    def from_data(cls, data: ChatMessageData):
-        return ChatMessage(
-            src=data['src'],
-            dst=data['dst'],
-            msg=data['msg'],
-        )
+from .project_types import Message, ChatMessage, ChatMessageData, AuthenticatedMessageData
 
 
 JSON_ID_KEY = 'id'
@@ -40,14 +13,6 @@ JSON_CHAT_DST_KEY = 'dst'
 JSON_CHAT_MSG_KEY = 'msg'
 
 Data = dict[str, Any]
-
-
-class Message(StrEnum):
-    INCORRECT_FORMAT = 'INCORRECT_FORMAT'
-    MISSING_JSON_KEYS = 'MISSING_JSON_KEYS'
-    INVALID_CREDENTIALS = 'INVALID_CREDENTIALS'
-    AUTHENTICATED = 'AUTHENTICATED'
-    CHAT = 'CHAT'
 
 
 class Session:
