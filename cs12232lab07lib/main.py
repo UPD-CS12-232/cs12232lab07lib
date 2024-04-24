@@ -7,15 +7,15 @@ from typing import TypedDict
 from websockets.client import connect, WebSocketClientProtocol
 
 
-class AuthenticatedMessageData(TypedDict):
-    msg: str
-    public_chats: list[str]
-
-
 class ChatMessageData(TypedDict):
     src: str
     dst: str | None
     msg: str
+
+
+class AuthenticatedMessageData(TypedDict):
+    msg: str
+    public_chats: list[ChatMessageData]
 
 
 @dataclass
