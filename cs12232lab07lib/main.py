@@ -2,10 +2,35 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, TypeGuard, Callable
 import json
+from typing import TypedDict
 
-from websockets.sync.client import connect
+from websockets.client import connect, WebSocketClientProtocol
 
-from project_types import AuthenticatedMessage
+
+class AuthenticatedMessageData(TypedDict):
+    msg: str
+    public_chats: list[str]
+
+
+class ChatMessageData(TypedDict):
+    src: str
+    dst: str | None
+    msg: str
+
+
+@dataclass
+class ChatMessage:
+    src: str
+    dst: str | None
+    msg: str
+
+    @classmethod
+    def from_data(cls, data: ChatMessageData):
+        return ChatMessage(
+            src=data['src'],
+            dst=data['dst'],
+            msg=data['msg'],
+        )
 
 
 JSON_ID_KEY = 'id'
@@ -17,47 +42,55 @@ JSON_CHAT_MSG_KEY = 'msg'
 Data = dict[str, Any]
 
 
-@dataclass
-class ChatMessage:
-    src: str
-    dst: str | None
-    msg: str
-
-
 class Message(StrEnum):
     INCORRECT_FORMAT = 'INCORRECT_FORMAT'
     MISSING_JSON_KEYS = 'MISSING_JSON_KEYS'
     INVALID_CREDENTIALS = 'INVALID_CREDENTIALS'
     AUTHENTICATED = 'AUTHENTICATED'
+    CHAT = 'CHAT'
 
 
 class Session:
-    def __init__(self, username: str, password: str, endpoint: str):
-        with connect(endpoint) as websocket:
-            websocket.send(json.dumps({
-                'username': username,
-                'password': password,
-            }))
+    @classmethod
+    async def create(cls, username: str, password: str, endpoint: str):
+        websocket = await connect(endpoint)
+        await websocket.send(json.dumps({
+            'username': username,
+            'password': password,
+        }))
 
-            data = json.loads(websocket.recv())
+        session = Session(username, endpoint, websocket)
+        await session.fetch_chat_messages()
 
-            if not self._is_authentication_message(data):
-                raise self._make_error(data)
+        return session
 
-            self._websocket = websocket
-            self._public_chats = data[JSON_PUBLIC_CHATS_KEY]
+    def __init__(self, username: str, endpoint: str, websocket: WebSocketClientProtocol):
+        self.username = username
+        self.endpoint = endpoint
+        self._websocket = websocket
+        self._public_chats = None
 
-            self.username = username
+    async def fetch_chat_messages(self):
+        data = json.loads(await self._websocket.recv())
 
-    async def wait_for_messages(self, callback: Callable[[ChatMessage], None]):
-        while True:
-            raw_data = str(self._websocket.recv())
-            print(raw_data)
+        if not self._is_authentication_message(data):
+            raise self._make_error(data)
 
-            parsed_data = self._parse_message(raw_data)
+        self._public_chats = data[JSON_PUBLIC_CHATS_KEY]
 
-            if self._is_chat_message(parsed_data):
-                callback(parsed_data)
+    def make_task(self, callback: Callable[[ChatMessage], None]):
+        async def inner():
+            while True:
+                raw_data = str(await self._websocket.recv())
+                print('Raw data:', raw_data)
+
+                parsed_data = self._parse_message(raw_data)
+
+                if self._is_chat_message(parsed_data):
+                    chat = ChatMessage.from_data(parsed_data)
+                    callback(chat)
+
+        return inner
 
     def _parse_message(self, raw_data: str):
         try:
@@ -70,11 +103,11 @@ class Session:
 
         return parsed_data
 
-    def _is_chat_message(self, data: Data) -> TypeGuard[ChatMessage]:
+    def _is_chat_message(self, data: Data) -> TypeGuard[ChatMessageData]:
         if JSON_ID_KEY not in data:
             return False
 
-        if data[JSON_ID_KEY] != Message.AUTHENTICATED:
+        if data[JSON_ID_KEY] != Message.CHAT:
             return False
 
         if not isinstance(data[JSON_CHAT_SRC_KEY], str):
@@ -88,7 +121,7 @@ class Session:
 
         return True
 
-    def _is_authentication_message(self, data: Data) -> TypeGuard[AuthenticatedMessage]:
+    def _is_authentication_message(self, data: Data) -> TypeGuard[AuthenticatedMessageData]:
         if JSON_ID_KEY not in data:
             return False
 
@@ -112,27 +145,5 @@ class Session:
         return RuntimeError(f"Unknown message: {msg}")
 
 
-def authenticate(username: str, password: str, endpoint: str) -> Session:
-    return Session(username, password, endpoint)
-
-
-if __name__ == '__main__':
-    endpoint = "ws://localhost:8000/ws"
-
-    session = authenticate('testuser', 'testpass', endpoint)
-
-    import asyncio
-
-    async def async_main():
-        def callback(msg: ChatMessage):
-            print(f'received message: {msg}')
-
-        x = 0
-
-        while True:
-            await session.wait_for_messages(callback)
-            print(f'sleeping: {x}')
-            await asyncio.sleep(1)
-            x += 1
-
-    asyncio.run(async_main())
+async def authenticate(username: str, password: str, endpoint: str):
+    return await Session.create(username, password, endpoint)
