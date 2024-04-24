@@ -29,12 +29,12 @@ class Session:
         self._websocket = websocket
 
     async def send_group_chat_message(self, msg: str):
-        await self._websocket.send_json({
+        await self._websocket.send(json.dumps({
             JSON_ID_KEY: Message.CHAT,
             JSON_CHAT_SRC_KEY: self.username,
             JSON_CHAT_DST_KEY: None,
             JSON_CHAT_MSG_KEY: msg,
-        })
+        }))
 
     async def fetch_chat_messages(self):
         data = json.loads(await self._websocket.recv())
