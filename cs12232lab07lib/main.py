@@ -74,7 +74,7 @@ class Session:
         data = json.loads(await self._websocket.recv())
 
         if not self._is_authentication_message(data):
-            raise self._make_error(data)
+            raise self._make_error(data[JSON_ID_KEY])
 
         self.public_chats = data[JSON_PUBLIC_CHATS_KEY]
 
@@ -133,8 +133,8 @@ class Session:
 
         return True
 
-    def _make_error(self, msg: str):
-        match msg:
+    def _make_error(self, msg_id: str):
+        match msg_id:
             case Message.INCORRECT_FORMAT:
                 return RuntimeError('Incorrect format')
             case Message.MISSING_JSON_KEYS:
@@ -142,7 +142,7 @@ class Session:
             case Message.INVALID_CREDENTIALS:
                 return RuntimeError('Invalid credentials')
 
-        return RuntimeError(f"Unknown message: {msg}")
+        return RuntimeError(f"Unknown message: {msg_id}")
 
 
 async def authenticate(username: str, password: str, endpoint: str):
