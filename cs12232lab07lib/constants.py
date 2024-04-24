@@ -1,0 +1,5 @@
+JSON_ID_KEY = 'id'
+JSON_PUBLIC_CHATS_KEY = 'public_chats'
+JSON_CHAT_SRC_KEY = 'src'
+JSON_CHAT_DST_KEY = 'dst'
+JSON_CHAT_MSG_KEY = 'msg'

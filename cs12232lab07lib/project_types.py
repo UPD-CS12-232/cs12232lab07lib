@@ -1,6 +1,9 @@
 from dataclasses import dataclass
-from typing import TypedDict
+from typing import TypedDict, Any
 from enum import StrEnum
+
+
+Data = dict[str, Any]
 
 
 class Message(StrEnum):
