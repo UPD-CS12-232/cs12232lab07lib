@@ -4,7 +4,7 @@ import json
 from websockets.client import connect, WebSocketClientProtocol
 
 from .project_types import Message, ChatMessage
-from .constants import JSON_ID_KEY, JSON_PUBLIC_CHATS_KEY
+from .constants import JSON_ID_KEY, JSON_PUBLIC_CHATS_KEY, JSON_CHAT_SRC_KEY, JSON_CHAT_DST_KEY, JSON_CHAT_MSG_KEY
 from .utils import is_chat_message, is_authentication_message, make_error
 
 
@@ -27,6 +27,14 @@ class Session:
         self.endpoint = endpoint
         self.public_chats = None
         self._websocket = websocket
+
+    async def send_group_chat_message(self, msg: str):
+        await self._websocket.send_json({
+            JSON_ID_KEY: Message.CHAT,
+            JSON_CHAT_SRC_KEY: self.username,
+            JSON_CHAT_DST_KEY: None,
+            JSON_CHAT_MSG_KEY: msg,
+        })
 
     async def fetch_chat_messages(self):
         data = json.loads(await self._websocket.recv())
