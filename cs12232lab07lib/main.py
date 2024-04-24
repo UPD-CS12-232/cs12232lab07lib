@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable
 import json
 
@@ -28,13 +29,16 @@ class Session:
         self.public_chats = None
         self._websocket = websocket
 
-    async def send_group_chat_message(self, msg: str):
-        await self._websocket.send(json.dumps({
-            JSON_ID_KEY: Message.CHAT,
-            JSON_CHAT_SRC_KEY: self.username,
-            JSON_CHAT_DST_KEY: None,
-            JSON_CHAT_MSG_KEY: msg,
-        }))
+    def send_group_chat_message(self, msg: str):
+        async def task():
+            await self._websocket.send(json.dumps({
+                JSON_ID_KEY: Message.CHAT,
+                JSON_CHAT_SRC_KEY: self.username,
+                JSON_CHAT_DST_KEY: None,
+                JSON_CHAT_MSG_KEY: msg,
+            }))
+
+        asyncio.get_event_loop().create_task(task())
 
     async def fetch_chat_messages(self):
         data = json.loads(await self._websocket.recv())
