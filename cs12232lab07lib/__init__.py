@@ -1,5 +1,5 @@
 from .main import authenticate, Session
 
-import constants
-import project_types
-import utils
+from . import constants
+from . import project_types
+from . import utils
