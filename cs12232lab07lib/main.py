@@ -64,16 +64,16 @@ class Session:
 
         self.chats = [ChatMessage.from_data(chat_data) for chat_data in data[JSON_CHATS_KEY]]
 
-    def make_task(self, callback: Callable[[ChatMessage], None]):
-        async def inner():
+    def make_task(self, on_chat_received: Callable[[ChatMessage], None]):
+        async def task_loop():
             while True:
                 raw_data = str(await self._websocket.recv())
                 print('Raw data:', raw_data)
 
                 if is_chat_message(parsed_data := self._parse_message(raw_data)):
-                    callback(ChatMessage.from_data(parsed_data))
+                    on_chat_received(ChatMessage.from_data(parsed_data))
 
-        return inner
+        return task_loop
 
     def _parse_message(self, raw_data: str):
         try:
