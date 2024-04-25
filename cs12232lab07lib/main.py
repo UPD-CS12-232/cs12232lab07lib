@@ -40,7 +40,7 @@ class Session:
             await self._websocket.send(json.dumps({
                 JSON_ID_KEY: Message.CHAT,
                 JSON_CHAT_SRC_KEY: self.username,
-                JSON_CHAT_DST_KEY: None,
+                JSON_CHAT_DST_KEY: dest,
                 JSON_CHAT_MSG_KEY: msg,
             }))
 
