@@ -30,6 +30,12 @@ class Session:
         self._websocket = websocket
 
     def send_group_chat_message(self, msg: str):
+        return self._send_message(msg, None)
+
+    def send_direct_message(self, msg: str, dest: str):
+        return self._send_message(msg, dest)
+
+    def _send_message(self, msg: str, dest: str | None):
         async def task():
             await self._websocket.send(json.dumps({
                 JSON_ID_KEY: Message.CHAT,
