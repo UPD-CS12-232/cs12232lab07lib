@@ -27,7 +27,7 @@ class ChatMessageData(TypedDict):
 
 class AuthenticatedMessageData(TypedDict):
     msg: str
-    public_chats: list[ChatMessageData]
+    chats: list[ChatMessageData]
 
 
 @dataclass
