@@ -54,7 +54,7 @@ class Session:
                 JSON_CHAT_MSG_KEY: msg,
             }))
 
-        asyncio.get_event_loop().create_task(task())
+        asyncio.create_task(task())
 
     async def fetch_chat_messages(self):
         data = json.loads(await self._websocket.recv())
