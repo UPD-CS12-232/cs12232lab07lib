@@ -52,7 +52,7 @@ class Session:
         if not is_authentication_message(data):
             raise make_error(data[JSON_ID_KEY])
 
-        self.chats = data[JSON_CHATS_KEY]
+        self.chats = [ChatMessage.from_data(chat_data) for chat_data in data[JSON_CHATS_KEY]]
 
     def make_task(self, callback: Callable[[ChatMessage], None]):
         async def inner():
