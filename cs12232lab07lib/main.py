@@ -5,7 +5,7 @@ import json
 from websockets.client import connect, WebSocketClientProtocol
 
 from .project_types import Message, ChatMessage
-from .constants import JSON_ID_KEY, JSON_PUBLIC_CHATS_KEY, JSON_CHAT_SRC_KEY, JSON_CHAT_DST_KEY, JSON_CHAT_MSG_KEY
+from .constants import JSON_ID_KEY, JSON_CHATS_KEY, JSON_CHAT_SRC_KEY, JSON_CHAT_DST_KEY, JSON_CHAT_MSG_KEY
 from .utils import is_chat_message, is_authentication_message, make_error
 
 
@@ -26,7 +26,7 @@ class Session:
     def __init__(self, username: str, endpoint: str, websocket: WebSocketClientProtocol):
         self.username = username
         self.endpoint = endpoint
-        self.public_chats = None
+        self.chats = None
         self._websocket = websocket
 
     def send_group_chat_message(self, msg: str):
@@ -52,7 +52,7 @@ class Session:
         if not is_authentication_message(data):
             raise make_error(data[JSON_ID_KEY])
 
-        self.public_chats = data[JSON_PUBLIC_CHATS_KEY]
+        self.chats = data[JSON_CHATS_KEY]
 
     def make_task(self, callback: Callable[[ChatMessage], None]):
         async def inner():

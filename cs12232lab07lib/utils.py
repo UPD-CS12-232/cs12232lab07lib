@@ -1,6 +1,6 @@
 from typing import TypeGuard
 
-from .constants import JSON_ID_KEY, JSON_CHAT_SRC_KEY, JSON_CHAT_DST_KEY, JSON_CHAT_MSG_KEY, JSON_PUBLIC_CHATS_KEY
+from .constants import JSON_ID_KEY, JSON_CHAT_SRC_KEY, JSON_CHAT_DST_KEY, JSON_CHAT_MSG_KEY, JSON_CHATS_KEY
 from .project_types import Data, ChatMessageData, Message, AuthenticatedMessageData
 
 
@@ -30,7 +30,7 @@ def is_authentication_message(data: Data) -> TypeGuard[AuthenticatedMessageData]
     if data[JSON_ID_KEY] != Message.AUTHENTICATED:
         return False
 
-    if not isinstance(data[JSON_PUBLIC_CHATS_KEY], list):
+    if not isinstance(data[JSON_CHATS_KEY], list):
         return False
 
     return True
