@@ -5,8 +5,18 @@ import json
 from websockets.client import connect, WebSocketClientProtocol
 
 from .project_types import Message, ChatMessage
-from .constants import JSON_ID_KEY, JSON_CHATS_KEY, JSON_CHAT_SRC_KEY, JSON_CHAT_DST_KEY, JSON_CHAT_MSG_KEY
-from .utils import is_chat_message, is_authentication_message, make_error
+from .constants import (
+    JSON_ID_KEY,
+    JSON_CHATS_KEY,
+    JSON_CHAT_SRC_KEY,
+    JSON_CHAT_DST_KEY,
+    JSON_CHAT_MSG_KEY,
+)
+from .utils import (
+    is_chat_message,
+    is_authentication_message,
+    make_error,
+)
 
 
 class Session:
@@ -26,14 +36,14 @@ class Session:
     def __init__(self, username: str, endpoint: str, websocket: WebSocketClientProtocol):
         self.username = username
         self.endpoint = endpoint
-        self.chats = None
+        self.chats: list[ChatMessage] | None = None
         self._websocket = websocket
 
     def send_group_chat_message(self, msg: str):
-        return self._send_message(msg, None)
+        self._send_message(msg, None)
 
     def send_direct_message(self, msg: str, dest: str):
-        return self._send_message(msg, dest)
+        self._send_message(msg, dest)
 
     def _send_message(self, msg: str, dest: str | None):
         async def task():
@@ -60,11 +70,8 @@ class Session:
                 raw_data = str(await self._websocket.recv())
                 print('Raw data:', raw_data)
 
-                parsed_data = self._parse_message(raw_data)
-
-                if is_chat_message(parsed_data):
-                    chat = ChatMessage.from_data(parsed_data)
-                    callback(chat)
+                if is_chat_message(parsed_data := self._parse_message(raw_data)):
+                    callback(ChatMessage.from_data(parsed_data))
 
         return inner
 
